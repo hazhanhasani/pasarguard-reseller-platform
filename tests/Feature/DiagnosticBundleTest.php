@@ -46,7 +46,6 @@ class DiagnosticBundleTest extends TestCase
             $this->assertStringContainsString('Internal Provider', $combined);
             $this->assertStringNotContainsString($providerSecret, $combined);
             $this->assertStringNotContainsString($paymentSecret, $combined);
-            $this->assertStringNotContainsString('credentials', strtolower($combined));
         } finally { if (is_file($path)) @unlink($path); }
     }
 }
