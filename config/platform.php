@@ -26,4 +26,10 @@ return [
         'persistent_paths' => ['public/uploads'],
         'exclude_tables' => ['cache','cache_locks','sessions','jobs','failed_jobs','backups','update_history'],
     ],
+    'update' => [
+        'max_package_bytes' => (int) env('PLATFORM_UPDATE_MAX_BYTES', 134_217_728),
+        'max_entries' => (int) env('PLATFORM_UPDATE_MAX_ENTRIES', 10_000),
+        'max_uncompressed_bytes' => (int) env('PLATFORM_UPDATE_MAX_UNCOMPRESSED_BYTES', 536_870_912),
+        'max_entry_bytes' => (int) env('PLATFORM_UPDATE_MAX_ENTRY_BYTES', 67_108_864),
+    ],
 ];

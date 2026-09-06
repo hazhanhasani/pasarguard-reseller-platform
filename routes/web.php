@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ProblemCenterController as AdminProblemCenterCont
 use App\Http\Controllers\Admin\ProviderController as AdminProviderController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\ResellerController as AdminResellerController;
+use App\Http\Controllers\Admin\UpdateController as AdminUpdateController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BluPalWebhookController;
 use App\Http\Controllers\Reseller\DashboardController as ResellerDashboardController;
@@ -62,6 +63,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:super_admin','w
     Route::get('/backups/{backup}/download', [AdminBackupController::class, 'download'])->name('backups.download');
     Route::post('/backups/{backup}/restore', [AdminBackupController::class, 'restore'])->middleware('throttle:3,1')->name('backups.restore');
     Route::delete('/backups/{backup}', [AdminBackupController::class, 'destroy'])->name('backups.destroy');
+
+    Route::get('/updates', [AdminUpdateController::class, 'index'])->name('updates.index');
+    Route::post('/updates', [AdminUpdateController::class, 'upload'])->middleware('throttle:10,1')->name('updates.upload');
+    Route::post('/updates/{update}/apply', [AdminUpdateController::class, 'apply'])->middleware('throttle:3,1')->name('updates.apply');
+    Route::delete('/updates/{update}/package', [AdminUpdateController::class, 'destroyPackage'])->name('updates.package.destroy');
 
     Route::get('/payments/gateway', [AdminPaymentGatewayController::class, 'edit'])->name('payments.gateway.edit');
     Route::put('/payments/gateway', [AdminPaymentGatewayController::class, 'update'])->middleware('throttle:20,1')->name('payments.gateway.update');
