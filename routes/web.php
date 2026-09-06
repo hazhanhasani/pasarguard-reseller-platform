@@ -5,9 +5,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Reseller\DashboardController as ResellerDashboardController;
 use App\Http\Controllers\Reseller\StoreController;
 use App\Http\Controllers\Reseller\SubscriptionController;
+use App\Http\Controllers\SubscriptionGatewayController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
+Route::get('/s/{token}', SubscriptionGatewayController::class)
+    ->where('token', '[A-Za-z0-9_-]{32,128}')
+    ->name('subscription.public');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'show'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:20,1');

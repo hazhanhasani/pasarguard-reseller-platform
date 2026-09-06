@@ -1,6 +1,7 @@
 <?php
 use App\Jobs\ProcessProviderOperation;
 use App\Jobs\ReconcileSubscription;
+use App\Jobs\RefreshProviderOutput;
 use App\Jobs\SyncProviderUsage;
 use App\Models\ProviderOperation;
 use App\Models\ProviderUserMapping;
@@ -46,6 +47,17 @@ Artisan::command('platform:tick', function () {
             ->pluck('id')
             ->each(fn ($id) => SyncProviderUsage::dispatch((int) $id)->onQueue('usage'));
 
+        $outputBatch = max(1, (int) config('platform.tick.output_batch', 100));
+        ProviderUserMapping::query()
+            ->whereNotNull('provider_user_id')
+            ->whereHas('provider', fn ($q) => $q->whereIn('mode', ['active', 'maintenance']))
+            ->whereHas('subscription', fn ($q) => $q->where('desired_state', 'active'))
+            ->orderByRaw('last_valid_output_at IS NULL DESC, last_valid_output_at ASC')
+            ->orderBy('id')
+            ->limit($outputBatch)
+            ->pluck('id')
+            ->each(fn ($id) => RefreshProviderOutput::dispatch((int) $id)->onQueue('output'));
+
         $reconcileBatch = max(1, (int) config('platform.tick.reconcile_batch', 100));
         DB::table('provider_user_mappings')
             ->select('master_subscription_id')
@@ -56,7 +68,7 @@ Artisan::command('platform:tick', function () {
             ->each(fn ($id) => ReconcileSubscription::dispatch((string) $id)->onQueue('reconcile'));
 
         $this->call('queue:work', [
-            '--queue' => 'provider,usage,reconcile,default',
+            '--queue' => 'provider,usage,output,reconcile,default',
             '--stop-when-empty' => true,
             '--max-jobs' => max(1, (int) config('platform.tick.queue_jobs', 200)),
             '--max-time' => max(5, (int) config('platform.tick.queue_max_time', 50)),
@@ -86,4 +98,4 @@ Artisan::command('platform:tick', function () {
         DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$name]);
     }
     return 0;
-})->purpose('Run one bounded provider/usage/billing/reconciliation cycle; scheduling is controlled only by cPanel cron');
+})->purpose('Run one bounded provider/usage/output/billing/reconciliation cycle; scheduling is controlled only by cPanel cron');

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>{{ $subscription->name }} — {{ $subscription->store->name }}</title>
+<style>
+:root{--brand:{{ $subscription->store->brand_color ?: '#4f7cff' }};--bg:#f5f8ff;--card:#fff;--ink:#13213a;--muted:#6e7a91;--line:#e7ecf5;--ok:#159a68;--warn:#dc8b18;--bad:#d74d5c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top right,#eaf0ff,transparent 35%),linear-gradient(180deg,#fbfdff,#f4f7fb);color:var(--ink);font-family:Tahoma,Arial,sans-serif}.wrap{max-width:780px;margin:auto;padding:24px 16px 48px}.hero{background:linear-gradient(135deg,#fff,#f8faff);border:1px solid var(--line);border-radius:28px;padding:24px;box-shadow:0 16px 50px rgba(31,54,95,.08)}.brand{display:flex;align-items:center;gap:14px}.logo{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,var(--brand),#8cb5ff);display:grid;place-items:center;color:#fff;font-size:22px;font-weight:800;overflow:hidden}.logo img{width:100%;height:100%;object-fit:cover}.muted{color:var(--muted)}h1{font-size:25px;margin:4px 0 0}.badge{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;background:#eefaf5;color:var(--ok);font-size:13px;font-weight:700}.badge.off{background:#fff2f3;color:var(--bad)}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px}.value{font-size:20px;font-weight:800;margin-top:8px}.bar{height:10px;background:#edf1f7;border-radius:999px;overflow:hidden;margin-top:12px}.bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--brand),#7f9cff);border-radius:inherit}.section{margin-top:18px}.section h2{font-size:17px;margin:0 0 12px}.apps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.app{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px}.app b{font-size:14px}.chip{font-size:12px;padding:6px 9px;border-radius:999px;background:#f1f5fb;color:#56647c}.steps{margin:0;padding:0 20px 0 0;line-height:2}.copy{width:100%;margin-top:12px;border:0;border-radius:16px;padding:13px 16px;background:var(--brand);color:#fff;font-weight:800;cursor:pointer}.foot{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}@media(max-width:560px){.stats,.apps{grid-template-columns:1fr}.hero{padding:19px;border-radius:23px}h1{font-size:21px}}
+</style>
+</head>
+<body><main class="wrap">
+<section class="hero">
+<div class="brand">
+<div class="logo">@if($subscription->store->logo_path)<img alt="" src="{{ asset('storage/'.$subscription->store->logo_path) }}">@else{{ mb_substr($subscription->store->name,0,1) }}@endif</div>
+<div style="flex:1"><div class="muted">{{ $subscription->store->name }}</div><h1>{{ $subscription->name }}</h1></div>
+<span class="badge {{ $subscription->desired_state === 'active' ? '' : 'off' }}">{{ $subscription->desired_state === 'active' ? 'فعال' : 'غیرفعال' }}</span>
+</div>
+<div class="stats">
+<div class="card"><div class="muted">حجم مصرف‌شده</div><div class="value">{{ number_format($used / 1000000000, 2) }} GB</div>@if($usagePercent !== null)<div class="bar"><span style="width:{{ $usagePercent }}%"></span></div><div class="muted" style="margin-top:8px">{{ $usagePercent }}٪ از سهمیه</div>@else<div class="muted" style="margin-top:8px">سهمیه نامحدود</div>@endif</div>
+<div class="card"><div class="muted">حجم باقی‌مانده</div><div class="value">{{ $remaining === null ? 'نامحدود' : number_format($remaining / 1000000000, 2).' GB' }}</div><div class="muted" style="margin-top:8px">وضعیت: {{ match($subscription->desired_state){'active'=>'قابل استفاده','manual_suspended'=>'تعلیق دستی','wallet_zero'=>'توقف موقت سرویس','quota_exceeded'=>'اتمام حجم','expired'=>'منقضی‌شده',default=>'غیرفعال'} }}</div></div>
+<div class="card"><div class="muted">زمان باقی‌مانده</div><div class="value">@if($remainingSeconds === null)نامحدود @elseif($remainingSeconds <= 0)پایان یافته @else{{ intdiv($remainingSeconds,86400) }} روز@endif</div>@if($timePercent !== null)<div class="bar"><span style="width:{{ $timePercent }}%"></span></div>@endif</div>
+<div class="card"><div class="muted">تاریخ پایان</div><div class="value" style="font-size:16px">{{ $subscription->expires_at ? $subscription->expires_at->format('Y-m-d H:i') : 'بدون انقضا' }}</div><div class="muted" style="margin-top:8px">این صفحه فقط وضعیت اشتراک را نمایش می‌دهد.</div></div>
+</div>
+</section>
+<section class="section card"><h2>اپلیکیشن‌های پیشنهادی</h2><div class="apps"><div class="app"><b>Hiddify</b><span class="chip">Android / iOS / Desktop</span></div><div class="app"><b>v2rayNG</b><span class="chip">Android</span></div><div class="app"><b>Streisand</b><span class="chip">iOS / macOS</span></div><div class="app"><b>Clash Verge Rev</b><span class="chip">Windows / macOS / Linux</span></div></div></section>
+<section class="section card"><h2>راهنمای اضافه‌کردن اشتراک</h2><ol class="steps"><li>لینک همین صفحه را کپی کنید.</li><li>در اپلیکیشن خود بخش Subscription یا Import from URL را باز کنید.</li><li>لینک را وارد کنید و بروزرسانی Subscription را بزنید.</li></ol><button class="copy" type="button" onclick="navigator.clipboard.writeText(location.href).then(()=>this.textContent='لینک کپی شد ✓')">کپی لینک اشتراک</button></section>
+<div class="foot">لینک اشتراک اختصاصی شماست؛ آن را فقط با دستگاه‌های مورد اعتماد به اشتراک بگذارید.</div>
+</main></body></html>
