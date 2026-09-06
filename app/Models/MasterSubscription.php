@@ -31,8 +31,8 @@ class MasterSubscription extends Model
         ];
     }
 
-    public function reseller(): BelongsTo { return $this->belongsTo(Reseller::class); }
-    public function store(): BelongsTo { return $this->belongsTo(Store::class); }
+    public function reseller(): BelongsTo { return $this->belongsTo(Reseller::class)->withTrashed(); }
+    public function store(): BelongsTo { return $this->belongsTo(Store::class)->withTrashed(); }
     public function mappings(): HasMany { return $this->hasMany(ProviderUserMapping::class, 'master_subscription_id', 'master_subscription_id'); }
     public function operations(): HasMany { return $this->hasMany(ProviderOperation::class, 'master_subscription_id', 'master_subscription_id'); }
 }
