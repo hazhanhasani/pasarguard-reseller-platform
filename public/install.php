@@ -24,7 +24,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     $mutex=null;
     try {
         if(!hash_equals($_SESSION['csrf'],(string)($_POST['csrf']??''))) throw new RuntimeException('درخواست نامعتبر است.');
-        if(!is_file($secretPath)||!hash_equals(trim((string)file_get_contents($secretPath)),(string)($_POST['setup_key']??''))) throw new RuntimeException('کلید نصب صحیح نیست.');
+        if(!is_file($secretPath)||strlen(trim((string)file_get_contents($secretPath)))<32||!hash_equals(trim((string)file_get_contents($secretPath)),(string)($_POST['setup_key']??''))) throw new RuntimeException('کلید نصب صحیح نیست.');
         if(in_array(false,$checks,true)) throw new RuntimeException('پیش‌نیازها کامل نیستند.');
         $mutex=fopen($root.'/storage/install.mutex','c');
         if(!$mutex||!flock($mutex,LOCK_EX|LOCK_NB)) throw new RuntimeException('نصب دیگری در حال اجراست.');

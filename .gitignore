@@ -8,3 +8,9 @@
 /storage/framework/views/*
 /storage/framework/cache/data/*
 /.phpunit.cache/
+/storage/setup.key
+/storage/installed.lock
+/storage/install.mutex
+/storage/backups/
+/storage/app/
+/public/uploads/

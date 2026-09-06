@@ -5,7 +5,7 @@
 هستهٔ محاسبهٔ مصرف و هزینه و سیاست تعلیق در GitHub Actions با موفقیت اجرا شده است:
 https://github.com/hazhanhasani/pasarguard-reseller-platform/actions/runs/34042113533
 
-ساختار Laravel، ورود فارسی، تفکیک نقش‌ها، Migrationهای اولیه و فرمان محدود Cron اضافه شده‌اند. تست جدید MySQL و ورود باید در Actions بررسی شود. نصب‌کنندهٔ وب و تمام فازهای عملیاتی بعدی هنوز تکمیل نشده‌اند.
+ساختار Laravel، ورود فارسی، تفکیک نقش‌ها، Migrationهای اولیه و فرمان محدود Cron اضافه شده‌اند. تست جدید MySQL و ورود باید در Actions بررسی شود. نصب‌کنندهٔ اولیهٔ وب و Adapter پاسارگارد اضافه شده‌اند؛ بازیابی نصب ناموفق و فازهای عملیاتی هنوز تکمیل نشده‌اند. جزئیات در docs/STATUS.md ثبت شده است.
 
 اجرای توسعه: composer install، کپی .env.example به .env، تنظیم MySQL آزمایشی، php artisan key:generate، php artisan migrate و composer test.
 ریشهٔ وب فقط public باشد. فرمان php artisan platform:tick یک چرخهٔ محدود صف اجرا می‌کند؛ همگام‌سازی Provider هنوز اضافه نشده است. برنامه هیچ زمان‌بندی داخلی ندارد.
