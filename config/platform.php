@@ -14,4 +14,9 @@ return [
         'base_seconds' => (int) env('PLATFORM_PROVIDER_RETRY_BASE', 30),
         'max_seconds' => (int) env('PLATFORM_PROVIDER_RETRY_MAX_SECONDS', 1800),
     ],
+    'health' => [
+        'provider_batch' => (int) env('PLATFORM_HEALTH_PROVIDER_BATCH', 100),
+        'provider_stale_seconds' => (int) env('PLATFORM_PROVIDER_STALE_SECONDS', 900),
+        'queue_backlog_warning' => (int) env('PLATFORM_QUEUE_BACKLOG_WARNING', 500),
+    ],
 ];

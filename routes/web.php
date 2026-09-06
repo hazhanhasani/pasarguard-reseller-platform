@@ -1,6 +1,9 @@
 <?php
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PaymentGatewayController as AdminPaymentGatewayController;
+use App\Http\Controllers\Admin\ProblemCenterController as AdminProblemCenterController;
+use App\Http\Controllers\Admin\ProviderController as AdminProviderController;
 use App\Http\Controllers\Admin\ResellerController as AdminResellerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BluPalWebhookController;
@@ -12,12 +15,8 @@ use App\Http\Controllers\SubscriptionGatewayController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
-Route::get('/s/{token}', SubscriptionGatewayController::class)
-    ->where('token', '[A-Za-z0-9_-]{32,128}')
-    ->name('subscription.public');
-Route::post('/webhooks/blupal', BluPalWebhookController::class)
-    ->middleware('throttle:120,1')
-    ->name('webhooks.blupal');
+Route::get('/s/{token}', SubscriptionGatewayController::class)->where('token', '[A-Za-z0-9_-]{32,128}')->name('subscription.public');
+Route::post('/webhooks/blupal', BluPalWebhookController::class)->middleware('throttle:120,1')->name('webhooks.blupal');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'show'])->name('login');
@@ -31,13 +30,32 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:super_admin'])-
     Route::get('/resellers/create', [AdminResellerController::class, 'create'])->name('resellers.create');
     Route::post('/resellers', [AdminResellerController::class, 'store'])->middleware('throttle:20,1')->name('resellers.store');
     Route::post('/resellers/{reseller}/topup', [AdminResellerController::class, 'topup'])->middleware('throttle:30,1')->name('resellers.topup');
+
+    Route::get('/providers', [AdminProviderController::class, 'index'])->name('providers.index');
+    Route::get('/providers/create', [AdminProviderController::class, 'create'])->name('providers.create');
+    Route::post('/providers', [AdminProviderController::class, 'store'])->middleware('throttle:20,1')->name('providers.store');
+    Route::get('/providers/{provider}/edit', [AdminProviderController::class, 'edit'])->name('providers.edit');
+    Route::put('/providers/{provider}', [AdminProviderController::class, 'update'])->name('providers.update');
+    Route::post('/providers/{provider}/test', [AdminProviderController::class, 'test'])->middleware('throttle:30,1')->name('providers.test');
+    Route::post('/providers/{provider}/mode', [AdminProviderController::class, 'mode'])->name('providers.mode');
+    Route::post('/providers/{provider}/force-sync', [AdminProviderController::class, 'forceSync'])->middleware('throttle:20,1')->name('providers.force-sync');
+    Route::delete('/providers/{provider}', [AdminProviderController::class, 'destroy'])->name('providers.destroy');
+
+    Route::get('/problems', [AdminProblemCenterController::class, 'index'])->name('problems.index');
+    Route::post('/problems/{operation}/retry', [AdminProblemCenterController::class, 'retry'])->name('problems.retry');
+    Route::post('/problems/retry-all', [AdminProblemCenterController::class, 'retryAll'])->middleware('throttle:10,1')->name('problems.retry-all');
+    Route::post('/problems/subscriptions/{subscription}/reconcile', [AdminProblemCenterController::class, 'reconcile'])->name('problems.reconcile');
+
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/{notification}/resolve', [AdminNotificationController::class, 'resolve'])->name('notifications.resolve');
+
     Route::get('/payments/gateway', [AdminPaymentGatewayController::class, 'edit'])->name('payments.gateway.edit');
     Route::put('/payments/gateway', [AdminPaymentGatewayController::class, 'update'])->middleware('throttle:20,1')->name('payments.gateway.update');
 });
 
 Route::prefix('reseller')->name('reseller.')->middleware(['auth','role:reseller'])->group(function () {
     Route::get('/', ResellerDashboardController::class)->name('dashboard');
-
     Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
     Route::get('/stores/create', [StoreController::class, 'create'])->name('stores.create');
     Route::post('/stores', [StoreController::class, 'store'])->name('stores.store');

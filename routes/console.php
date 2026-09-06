@@ -7,6 +7,7 @@ use App\Jobs\VerifyPendingPayment;
 use App\Models\Payment;
 use App\Models\ProviderOperation;
 use App\Models\ProviderUserMapping;
+use App\Services\OperationalHealthService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
@@ -68,6 +69,8 @@ Artisan::command('platform:tick', function () {
             '--tries' => 1,
         ]);
 
+        app(OperationalHealthService::class)->run();
+
         DB::table('settings')->updateOrInsert(['key' => 'cron_last_finished'], ['value' => now()->toIso8601String(), 'updated_at' => now()]);
         DB::table('settings')->updateOrInsert(['key' => 'cron_last_duration_ms'], ['value' => (string) max(0, (int) round((microtime(true) - $started) * 1000)), 'updated_at' => now()]);
         DB::table('settings')->updateOrInsert(['key' => 'cron_last_error'], ['value' => null, 'updated_at' => now()]);
@@ -79,4 +82,4 @@ Artisan::command('platform:tick', function () {
         DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$name]);
     }
     return 0;
-})->purpose('Run one bounded provider/usage/output/billing/payment/reconciliation cycle; scheduling is controlled only by cPanel cron');
+})->purpose('Run one bounded provider/usage/output/billing/payment/reconciliation/health cycle; scheduling is controlled only by cPanel cron');

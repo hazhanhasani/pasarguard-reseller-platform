@@ -17,6 +17,9 @@
             @if(auth()->user()->role === 'super_admin')
                 <a class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">نمای کلی</a>
                 <a class="{{ request()->routeIs('admin.resellers.*') ? 'active' : '' }}" href="{{ route('admin.resellers.index') }}">نمایندگان</a>
+                <a class="{{ request()->routeIs('admin.providers.*') ? 'active' : '' }}" href="{{ route('admin.providers.index') }}">Providerها</a>
+                <a class="{{ request()->routeIs('admin.problems.*') ? 'active' : '' }}" href="{{ route('admin.problems.index') }}">Problem Center</a>
+                <a class="{{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}" href="{{ route('admin.notifications.index') }}">هشدارها</a>
                 <a class="{{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.gateway.edit') }}">BluPal</a>
             @else
                 <a class="{{ request()->routeIs('reseller.dashboard') ? 'active' : '' }}" href="{{ route('reseller.dashboard') }}">داشبورد</a>

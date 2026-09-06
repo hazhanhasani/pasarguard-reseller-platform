@@ -18,10 +18,14 @@ class Provider extends Model
             'credentials' => 'encrypted:array',
             'group_ids' => 'array',
             'capabilities' => 'array',
+            'ready' => 'boolean',
+            'health_score' => 'integer',
             'latency_ms' => 'integer',
             'error_counter' => 'integer',
             'last_successful_sync' => 'datetime',
             'last_failed_sync' => 'datetime',
+            'last_tested_at' => 'datetime',
+            'capability_verified_at' => 'datetime',
         ];
     }
 
