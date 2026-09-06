@@ -1,0 +1,10 @@
+/.env
+/vendor/
+/node_modules/
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/storage/**/*.log
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/cache/data/*
+/.phpunit.cache/
