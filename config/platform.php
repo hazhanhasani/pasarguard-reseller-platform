@@ -1,5 +1,6 @@
 <?php
 return [
+    'version' => env('PLATFORM_VERSION', '0.10.0-dev'),
     'tick' => [
         'provider_operation_batch' => (int) env('PLATFORM_PROVIDER_OPERATION_BATCH', 50),
         'usage_batch' => (int) env('PLATFORM_USAGE_BATCH', 100),
@@ -18,5 +19,11 @@ return [
         'provider_batch' => (int) env('PLATFORM_HEALTH_PROVIDER_BATCH', 100),
         'provider_stale_seconds' => (int) env('PLATFORM_PROVIDER_STALE_SECONDS', 900),
         'queue_backlog_warning' => (int) env('PLATFORM_QUEUE_BACKLOG_WARNING', 500),
+    ],
+    'backup' => [
+        'keep_last' => (int) env('PLATFORM_BACKUP_KEEP_LAST', 10),
+        'max_bytes' => (int) env('PLATFORM_BACKUP_MAX_BYTES', 10_737_418_240),
+        'persistent_paths' => ['public/uploads'],
+        'exclude_tables' => ['cache','cache_locks','sessions','jobs','failed_jobs','backups','update_history'],
     ],
 ];

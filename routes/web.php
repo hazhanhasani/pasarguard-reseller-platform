@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\Admin\BackupController as AdminBackupController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PaymentGatewayController as AdminPaymentGatewayController;
@@ -26,7 +27,7 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth','role:super_admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth','role:super_admin','write.guard'])->group(function () {
     Route::get('/', AdminDashboardController::class)->name('dashboard');
     Route::get('/resellers', [AdminResellerController::class, 'index'])->name('resellers.index');
     Route::get('/resellers/create', [AdminResellerController::class, 'create'])->name('resellers.create');
@@ -55,11 +56,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:super_admin'])-
     Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export/{format}', [AdminReportController::class, 'export'])->whereIn('format', ['csv','xls'])->middleware('throttle:30,1')->name('reports.export');
 
+    Route::get('/backups', [AdminBackupController::class, 'index'])->name('backups.index');
+    Route::post('/backups', [AdminBackupController::class, 'create'])->middleware('throttle:10,1')->name('backups.create');
+    Route::put('/backups/retention', [AdminBackupController::class, 'retention'])->name('backups.retention');
+    Route::get('/backups/{backup}/download', [AdminBackupController::class, 'download'])->name('backups.download');
+    Route::post('/backups/{backup}/restore', [AdminBackupController::class, 'restore'])->middleware('throttle:3,1')->name('backups.restore');
+    Route::delete('/backups/{backup}', [AdminBackupController::class, 'destroy'])->name('backups.destroy');
+
     Route::get('/payments/gateway', [AdminPaymentGatewayController::class, 'edit'])->name('payments.gateway.edit');
     Route::put('/payments/gateway', [AdminPaymentGatewayController::class, 'update'])->middleware('throttle:20,1')->name('payments.gateway.update');
 });
 
-Route::prefix('reseller')->name('reseller.')->middleware(['auth','role:reseller'])->group(function () {
+Route::prefix('reseller')->name('reseller.')->middleware(['auth','role:reseller','write.guard'])->group(function () {
     Route::get('/', ResellerDashboardController::class)->name('dashboard');
     Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
     Route::get('/stores/create', [StoreController::class, 'create'])->name('stores.create');

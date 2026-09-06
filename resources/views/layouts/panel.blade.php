@@ -21,6 +21,7 @@
                 <a class="{{ request()->routeIs('admin.problems.*') ? 'active' : '' }}" href="{{ route('admin.problems.index') }}">Problem Center</a>
                 <a class="{{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}" href="{{ route('admin.notifications.index') }}">هشدارها</a>
                 <a class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.index') }}">گزارش‌ها</a>
+                <a class="{{ request()->routeIs('admin.backups.*') ? 'active' : '' }}" href="{{ route('admin.backups.index') }}">Backup & Restore</a>
                 <a class="{{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.gateway.edit') }}">BluPal</a>
             @else
                 <a class="{{ request()->routeIs('reseller.dashboard') ? 'active' : '' }}" href="{{ route('reseller.dashboard') }}">داشبورد</a>

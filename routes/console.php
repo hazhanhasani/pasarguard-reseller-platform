@@ -7,6 +7,8 @@ use App\Jobs\VerifyPendingPayment;
 use App\Models\Payment;
 use App\Models\ProviderOperation;
 use App\Models\ProviderUserMapping;
+use App\Services\BackupService;
+use App\Services\MaintenanceLockService;
 use App\Services\OperationalHealthService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +17,10 @@ Artisan::command('platform:tick', function () {
     if (DB::connection()->getDriverName() !== 'mysql') {
         $this->error('Tick requires MySQL/MariaDB advisory locking');
         return 1;
+    }
+    if (app(MaintenanceLockService::class)->isLocked()) {
+        $this->info('Platform write maintenance is active; tick skipped without touching queued work.');
+        return 0;
     }
 
     $name = 'platform:'.substr(hash('sha256', base_path()), 0, 40);
@@ -83,3 +89,24 @@ Artisan::command('platform:tick', function () {
     }
     return 0;
 })->purpose('Run one bounded provider/usage/output/billing/payment/reconciliation/health cycle; scheduling is controlled only by cPanel cron');
+
+Artisan::command('platform:backup {type=full}', function (BackupService $backups, MaintenanceLockService $locks) {
+    $type = (string) $this->argument('type');
+    if (!in_array($type, ['database','persistent','full'], true)) {
+        $this->error('Backup type must be database, persistent or full.');
+        return 1;
+    }
+    if ($locks->isLocked()) {
+        $this->error('Maintenance write lock is active; backup skipped.');
+        return 1;
+    }
+    try {
+        $backup = $backups->create($type, null, ['source'=>'cron']);
+        $this->info('Backup #'.$backup->id.' completed ('.$backup->size_bytes.' bytes).');
+        return 0;
+    } catch (Throwable $e) {
+        report($e);
+        $this->error('Backup failed: '.$e::class);
+        return 1;
+    }
+})->purpose('Create one backup cycle; cPanel Cron exclusively controls scheduling');

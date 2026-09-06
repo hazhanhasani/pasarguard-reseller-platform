@@ -7,6 +7,7 @@
 /storage/framework/sessions/*
 /storage/framework/views/*
 /storage/framework/cache/data/*
+/storage/framework/platform-write.lock
 /.phpunit.cache/
 /storage/setup.key
 /storage/installed.lock
