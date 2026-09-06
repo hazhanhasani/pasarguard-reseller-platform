@@ -23,6 +23,7 @@
                 <a class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.index') }}">گزارش‌ها</a>
                 <a class="{{ request()->routeIs('admin.backups.*') ? 'active' : '' }}" href="{{ route('admin.backups.index') }}">Backup & Restore</a>
                 <a class="{{ request()->routeIs('admin.updates.*') ? 'active' : '' }}" href="{{ route('admin.updates.index') }}">Update Center</a>
+                <a class="{{ request()->routeIs('admin.system-health.*') ? 'active' : '' }}" href="{{ route('admin.system-health.index') }}">System Health</a>
                 <a class="{{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.gateway.edit') }}">BluPal</a>
             @else
                 <a class="{{ request()->routeIs('reseller.dashboard') ? 'active' : '' }}" href="{{ route('reseller.dashboard') }}">داشبورد</a>
