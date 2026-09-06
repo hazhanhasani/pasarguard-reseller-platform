@@ -20,12 +20,14 @@
                 <a class="{{ request()->routeIs('admin.providers.*') ? 'active' : '' }}" href="{{ route('admin.providers.index') }}">Providerها</a>
                 <a class="{{ request()->routeIs('admin.problems.*') ? 'active' : '' }}" href="{{ route('admin.problems.index') }}">Problem Center</a>
                 <a class="{{ request()->routeIs('admin.notifications.*') ? 'active' : '' }}" href="{{ route('admin.notifications.index') }}">هشدارها</a>
+                <a class="{{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.index') }}">گزارش‌ها</a>
                 <a class="{{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.gateway.edit') }}">BluPal</a>
             @else
                 <a class="{{ request()->routeIs('reseller.dashboard') ? 'active' : '' }}" href="{{ route('reseller.dashboard') }}">داشبورد</a>
                 <a class="{{ request()->routeIs('reseller.subscriptions.*') ? 'active' : '' }}" href="{{ route('reseller.subscriptions.index') }}">اشتراک‌ها</a>
                 <a class="{{ request()->routeIs('reseller.stores.*') ? 'active' : '' }}" href="{{ route('reseller.stores.index') }}">فروشگاه‌ها</a>
                 <a class="{{ request()->routeIs('reseller.wallet.*') ? 'active' : '' }}" href="{{ route('reseller.wallet.index') }}">کیف پول</a>
+                <a class="{{ request()->routeIs('reseller.reports.*') ? 'active' : '' }}" href="{{ route('reseller.reports.index') }}">گزارش‌ها</a>
             @endif
         </nav>
         <div class="sidebar-user">

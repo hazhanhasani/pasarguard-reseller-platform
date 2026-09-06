@@ -4,11 +4,13 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\PaymentGatewayController as AdminPaymentGatewayController;
 use App\Http\Controllers\Admin\ProblemCenterController as AdminProblemCenterController;
 use App\Http\Controllers\Admin\ProviderController as AdminProviderController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\ResellerController as AdminResellerController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BluPalWebhookController;
 use App\Http\Controllers\Reseller\DashboardController as ResellerDashboardController;
 use App\Http\Controllers\Reseller\PaymentController as ResellerPaymentController;
+use App\Http\Controllers\Reseller\ReportController as ResellerReportController;
 use App\Http\Controllers\Reseller\StoreController;
 use App\Http\Controllers\Reseller\SubscriptionController;
 use App\Http\Controllers\SubscriptionGatewayController;
@@ -50,6 +52,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:super_admin'])-
     Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markRead'])->name('notifications.read');
     Route::post('/notifications/{notification}/resolve', [AdminNotificationController::class, 'resolve'])->name('notifications.resolve');
 
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/{format}', [AdminReportController::class, 'export'])->whereIn('format', ['csv','xls'])->middleware('throttle:30,1')->name('reports.export');
+
     Route::get('/payments/gateway', [AdminPaymentGatewayController::class, 'edit'])->name('payments.gateway.edit');
     Route::put('/payments/gateway', [AdminPaymentGatewayController::class, 'update'])->middleware('throttle:20,1')->name('payments.gateway.update');
 });
@@ -76,4 +81,7 @@ Route::prefix('reseller')->name('reseller.')->middleware(['auth','role:reseller'
     Route::get('/wallet', [ResellerPaymentController::class, 'index'])->name('wallet.index');
     Route::post('/wallet/pay', [ResellerPaymentController::class, 'pay'])->middleware('throttle:20,1')->name('wallet.pay');
     Route::get('/wallet/payments/{payment}/callback', [ResellerPaymentController::class, 'callback'])->name('wallet.callback');
+
+    Route::get('/reports', [ResellerReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/{format}', [ResellerReportController::class, 'export'])->whereIn('format', ['csv','xls'])->middleware('throttle:30,1')->name('reports.export');
 });
