@@ -1,19 +1,32 @@
 # Development status
 
-This is not a deployable production release. Do not sell subscriptions using this branch yet.
+This is not yet a deployable production release. Do not sell subscriptions using this branch until all production phases and acceptance checks are complete.
 
-Implemented: Laravel foundation, role-protected login, initial MySQL migrations, integer billing calculation, desired-state calculation, bounded queue tick with MySQL lock, guarded initial web installer, documented PasarGuard HTTP adapter, encrypted provider credential model.
+Implemented foundations:
+- Laravel/cPanel foundation, role-protected login, guarded HTTPS installer and MySQL-backed bounded `platform:tick` lock.
+- Provider adapter abstraction and documented PasarGuard HTTP adapter with encrypted provider credentials and non-destructive connection/capability probing.
+- Master Subscription schema using independent ULIDs, cryptographically random central tokens, encrypted token storage, immediate rotate/revoke lookup invalidation, Provider mappings and idempotent Provider operation records.
+- Desired-state persistence for `active`, `manual_suspended`, `wallet_zero`, `quota_exceeded`, `expired`, `deleted`.
+- Delta-based usage snapshots; counter regression becomes `reconcile_required` and is never interpreted as zero usage.
+- Global usage accounting in bytes, global price history, integer minor-unit billing with fractional carry, immutable Wallet Ledger and row-locked/idempotent wallet mutations.
+- Zero-wallet transition: only active subscriptions become `wallet_zero`; recharge only reevaluates subscriptions whose state is `wallet_zero`.
+- Provider operation, usage sync and reconciliation jobs. Partial Provider failures are isolated and retried without invalidating the central subscription.
+- Subscription event timeline and audit-log schema foundations.
 
-Verified on GitHub Actions: initial core and auth/MySQL suites; installer dotenv security suite. Provider contract tests use mocked HTTP; they do not certify any live provider.
+Quality coverage includes pure accounting/state regression tests plus MySQL feature tests for wallet idempotency, immutable ledger, zero-wallet/recharge behavior, historical rates, delta billing, counter regression, token rotation and Store/Reseller tenant boundary.
 
-Still missing: complete installer recovery/end-to-end TLS tests; provider management/probes; master subscriptions/mappings; usage sync; transactional ledger services; reseller/store CRUD; gateway and landing page; BluPal integration; dashboards/reports/notifications; import/API; backup/restore/update; complete security and production acceptance.
+Still required before production release:
+- Finish installer recovery/end-to-end installation flow and commit a reviewed `composer.lock`.
+- Provider management UI, live version compatibility matrix and safe sandbox tools.
+- Complete edit/reset/token operations and richer reconciliation/problem-center workflows.
+- Reseller/Store CRUD, dashboards and authorization policies for all tenant resources.
+- Single `/s/{token}` browser/JSON gateway, landing page and no-dedup JSON aggregation/cache.
+- BluPal integration only after validating the current official documentation; webhook remains authoritative and idempotent.
+- Reseller API, scoped API keys, rate limiting and OpenAPI documentation.
+- Reports/exports, notifications/deduplication, System Health and diagnostic bundle.
+- Backup/restore/update center, release ZIP validation/checksums/staging/rollback.
+- Security hardening, 2FA option, complete audit writers, production load/fault tests and final cPanel deployment acceptance.
 
-No ready-to-install release ZIP is published. Composer lock is currently an Actions artifact and must be reviewed and committed before reproducible release packaging.
+Cron policy: cPanel exclusively controls the schedule. No sync interval is hard-coded. Every `php artisan platform:tick` invocation performs one bounded cycle using configurable batch sizes, MySQL advisory locking, database queues and idempotent jobs.
 
-Provider API contracts were read from official PasarGuard/panel source, 2026-09-06:
-- app/routers/user.py: user CRUD, boolean disabled, usage reset, pagination, administrative subscription xray output.
-- app/routers/authentication.py: X-Api-Key authentication.
-- app/models/user.py: group_ids, data_limit, expire, used_traffic and lifetime_used_traffic.
-- app/models/settings.py: xray output enum.
-
-Compatibility must be checked against each provider's actual version. The adapter currently uses API keys, not username/password token acquisition. IPv4-resolvable public HTTPS origins only; redirects are disabled and DNS results pinned. HTTP timeout values are network budgets, not sync schedules.
+Provider API contracts are based on the official PasarGuard/panel source reviewed 2026-09-06. No undocumented payment endpoint or payload is permitted in production code.

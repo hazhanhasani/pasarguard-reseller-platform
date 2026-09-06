@@ -1,14 +1,89 @@
 <?php
+use App\Jobs\ProcessProviderOperation;
+use App\Jobs\ReconcileSubscription;
+use App\Jobs\SyncProviderUsage;
+use App\Models\ProviderOperation;
+use App\Models\ProviderUserMapping;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-Artisan::command('platform:tick',function () {
-    if (DB::connection()->getDriverName() !== 'mysql') { $this->error('Tick requires MySQL locking'); return 1; }
-    $name='platform:'.substr(hash('sha256',base_path()),0,40);
-    $locked=DB::selectOne('SELECT GET_LOCK(?,0) AS acquired',[$name]);
-    if((int)$locked->acquired !== 1) { $this->info('Another tick is running'); return 0; }
+
+Artisan::command('platform:tick', function () {
+    if (DB::connection()->getDriverName() !== 'mysql') {
+        $this->error('Tick requires MySQL/MariaDB advisory locking');
+        return 1;
+    }
+
+    $name = 'platform:'.substr(hash('sha256', base_path()), 0, 40);
+    $locked = DB::selectOne('SELECT GET_LOCK(?,0) AS acquired', [$name]);
+    if ((int) $locked->acquired !== 1) {
+        $this->info('Another tick is running');
+        return 0;
+    }
+
+    $started = microtime(true);
     try {
-        DB::table('settings')->updateOrInsert(['key'=>'cron_last_run'],['value'=>now()->toIso8601String(),'updated_at'=>now()]);
-        $this->call('queue:work',['--stop-when-empty'=>true,'--max-jobs'=>50,'--max-time'=>45,'--tries'=>3]);
-    } finally { DB::selectOne('SELECT RELEASE_LOCK(?) AS released',[$name]); }
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'cron_last_run'],
+            ['value' => now()->toIso8601String(), 'updated_at' => now()],
+        );
+
+        $operationBatch = max(1, (int) config('platform.tick.provider_operation_batch', 50));
+        ProviderOperation::query()
+            ->whereIn('status', ['pending', 'retrying'])
+            ->where(function ($q) { $q->whereNull('available_at')->orWhere('available_at', '<=', now()); })
+            ->orderBy('id')
+            ->limit($operationBatch)
+            ->pluck('id')
+            ->each(fn ($id) => ProcessProviderOperation::dispatch((int) $id)->onQueue('provider'));
+
+        $usageBatch = max(1, (int) config('platform.tick.usage_batch', 100));
+        ProviderUserMapping::query()
+            ->whereHas('provider', fn ($q) => $q->whereIn('mode', ['active', 'maintenance']))
+            ->whereHas('subscription')
+            ->orderByRaw('last_success_at IS NULL DESC, last_success_at ASC')
+            ->orderBy('id')
+            ->limit($usageBatch)
+            ->pluck('id')
+            ->each(fn ($id) => SyncProviderUsage::dispatch((int) $id)->onQueue('usage'));
+
+        $reconcileBatch = max(1, (int) config('platform.tick.reconcile_batch', 100));
+        DB::table('provider_user_mappings')
+            ->select('master_subscription_id')
+            ->groupBy('master_subscription_id')
+            ->orderByRaw('MIN(last_reconciled_at) IS NULL DESC, MIN(last_reconciled_at) ASC')
+            ->limit($reconcileBatch)
+            ->pluck('master_subscription_id')
+            ->each(fn ($id) => ReconcileSubscription::dispatch((string) $id)->onQueue('reconcile'));
+
+        $this->call('queue:work', [
+            '--queue' => 'provider,usage,reconcile,default',
+            '--stop-when-empty' => true,
+            '--max-jobs' => max(1, (int) config('platform.tick.queue_jobs', 200)),
+            '--max-time' => max(5, (int) config('platform.tick.queue_max_time', 50)),
+            '--tries' => 1,
+        ]);
+
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'cron_last_finished'],
+            ['value' => now()->toIso8601String(), 'updated_at' => now()],
+        );
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'cron_last_duration_ms'],
+            ['value' => (string) max(0, (int) round((microtime(true) - $started) * 1000)), 'updated_at' => now()],
+        );
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'cron_last_error'],
+            ['value' => null, 'updated_at' => now()],
+        );
+    } catch (Throwable $e) {
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'cron_last_error'],
+            ['value' => $e::class, 'updated_at' => now()],
+        );
+        $this->error('Tick failed: '.$e::class);
+        return 1;
+    } finally {
+        DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$name]);
+    }
     return 0;
-})->purpose('Run one bounded queue cycle; schedule is controlled by cPanel');
+})->purpose('Run one bounded provider/usage/billing/reconciliation cycle; scheduling is controlled only by cPanel cron');
