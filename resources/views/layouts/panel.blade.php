@@ -17,10 +17,12 @@
             @if(auth()->user()->role === 'super_admin')
                 <a class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">نمای کلی</a>
                 <a class="{{ request()->routeIs('admin.resellers.*') ? 'active' : '' }}" href="{{ route('admin.resellers.index') }}">نمایندگان</a>
+                <a class="{{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.gateway.edit') }}">BluPal</a>
             @else
                 <a class="{{ request()->routeIs('reseller.dashboard') ? 'active' : '' }}" href="{{ route('reseller.dashboard') }}">داشبورد</a>
                 <a class="{{ request()->routeIs('reseller.subscriptions.*') ? 'active' : '' }}" href="{{ route('reseller.subscriptions.index') }}">اشتراک‌ها</a>
                 <a class="{{ request()->routeIs('reseller.stores.*') ? 'active' : '' }}" href="{{ route('reseller.stores.index') }}">فروشگاه‌ها</a>
+                <a class="{{ request()->routeIs('reseller.wallet.*') ? 'active' : '' }}" href="{{ route('reseller.wallet.index') }}">کیف پول</a>
             @endif
         </nav>
         <div class="sidebar-user">

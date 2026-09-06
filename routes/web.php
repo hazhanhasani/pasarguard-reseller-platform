@@ -1,8 +1,11 @@
 <?php
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PaymentGatewayController as AdminPaymentGatewayController;
 use App\Http\Controllers\Admin\ResellerController as AdminResellerController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BluPalWebhookController;
 use App\Http\Controllers\Reseller\DashboardController as ResellerDashboardController;
+use App\Http\Controllers\Reseller\PaymentController as ResellerPaymentController;
 use App\Http\Controllers\Reseller\StoreController;
 use App\Http\Controllers\Reseller\SubscriptionController;
 use App\Http\Controllers\SubscriptionGatewayController;
@@ -12,6 +15,9 @@ Route::redirect('/', '/login');
 Route::get('/s/{token}', SubscriptionGatewayController::class)
     ->where('token', '[A-Za-z0-9_-]{32,128}')
     ->name('subscription.public');
+Route::post('/webhooks/blupal', BluPalWebhookController::class)
+    ->middleware('throttle:120,1')
+    ->name('webhooks.blupal');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'show'])->name('login');
@@ -25,6 +31,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','role:super_admin'])-
     Route::get('/resellers/create', [AdminResellerController::class, 'create'])->name('resellers.create');
     Route::post('/resellers', [AdminResellerController::class, 'store'])->middleware('throttle:20,1')->name('resellers.store');
     Route::post('/resellers/{reseller}/topup', [AdminResellerController::class, 'topup'])->middleware('throttle:30,1')->name('resellers.topup');
+    Route::get('/payments/gateway', [AdminPaymentGatewayController::class, 'edit'])->name('payments.gateway.edit');
+    Route::put('/payments/gateway', [AdminPaymentGatewayController::class, 'update'])->middleware('throttle:20,1')->name('payments.gateway.update');
 });
 
 Route::prefix('reseller')->name('reseller.')->middleware(['auth','role:reseller'])->group(function () {
@@ -46,4 +54,8 @@ Route::prefix('reseller')->name('reseller.')->middleware(['auth','role:reseller'
     Route::post('/subscriptions/{subscription}/extend', [SubscriptionController::class, 'extend'])->name('subscriptions.extend');
     Route::post('/subscriptions/{subscription}/rotate-token', [SubscriptionController::class, 'rotateToken'])->name('subscriptions.rotate-token');
     Route::delete('/subscriptions/{subscription}', [SubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+
+    Route::get('/wallet', [ResellerPaymentController::class, 'index'])->name('wallet.index');
+    Route::post('/wallet/pay', [ResellerPaymentController::class, 'pay'])->middleware('throttle:20,1')->name('wallet.pay');
+    Route::get('/wallet/payments/{payment}/callback', [ResellerPaymentController::class, 'callback'])->name('wallet.callback');
 });
